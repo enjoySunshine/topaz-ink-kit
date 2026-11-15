@@ -3,6 +3,8 @@ export const ImageColorModel = {
   GREYA: 'GREYA',
   RGB: 'RGB',
   RGBA: 'RGBA',
+  HSV: 'HSV',
+  HSVA: 'HSVA',
   BINARY: 'BINARY',
 } as const;
 export type ImageColorModel =
@@ -32,6 +34,16 @@ export const colorModels: Record<
     channels: 3,
   },
   RGBA: {
+    components: 3,
+    alpha: true,
+    channels: 4,
+  },
+  HSV: {
+    components: 3,
+    alpha: false,
+    channels: 3,
+  },
+  HSVA: {
     components: 3,
     alpha: true,
     channels: 4,

@@ -26,6 +26,16 @@ test.each([
     expected: ['Red', 'Green', 'Blue', 'Alpha'],
   },
   {
+    message: 'hsv',
+    colorModel: ImageColorModel.HSV,
+    expected: ['Hue', 'Saturation', 'Value'],
+  },
+  {
+    message: 'hsva',
+    colorModel: ImageColorModel.HSVA,
+    expected: ['Hue', 'Saturation', 'Value', 'Alpha'],
+  },
+  {
     message: 'binary',
     colorModel: ImageColorModel.BINARY,
     expected: ['Mask'],

@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
 
+import { createImageFromData } from '../../../test/createImageFromData.ts';
+
 test('GREY to GREYA', () => {
   const image = testUtils.createGreyImage([
     [10, 30],
@@ -191,4 +193,136 @@ test('image to GREY', () => {
   ]);
 
   expect(grey).toMatchImage(expected);
+});
+
+test.each([
+  { rgb: [200, 80, 40], hsv: [10, 204, 200] },
+  { rgb: [255, 0, 0], hsv: [0, 255, 255] },
+  { rgb: [0, 255, 0], hsv: [85, 255, 255] },
+  { rgb: [0, 0, 255], hsv: [170, 255, 255] },
+  { rgb: [255, 255, 0], hsv: [42, 255, 255] },
+  { rgb: [0, 255, 255], hsv: [127, 255, 255] },
+  { rgb: [255, 0, 255], hsv: [212, 255, 255] },
+  { rgb: [100, 60, 20], hsv: [21, 204, 100] },
+  { rgb: [7, 1, 4], hsv: [233, 219, 7] },
+  { rgb: [40, 40, 40], hsv: [0, 0, 40] },
+  { rgb: [0, 0, 0], hsv: [0, 0, 0] },
+  { rgb: [255, 255, 255], hsv: [0, 0, 255] },
+])('RGB $rgb to HSV $hsv', ({ rgb, hsv }) => {
+  const image = testUtils.createRgbImage([rgb]);
+
+  const converted = image.convertColor('HSV');
+
+  expect(converted).toMatchImageData([hsv]);
+});
+
+test.each([
+  { hsv: [10, 204, 200], rgb: [200, 78, 40] },
+  { hsv: [0, 255, 255], rgb: [255, 0, 0] },
+  { hsv: [85, 255, 255], rgb: [0, 255, 0] },
+  { hsv: [170, 255, 255], rgb: [0, 0, 255] },
+  { hsv: [42, 255, 255], rgb: [255, 252, 0] },
+  { hsv: [127, 255, 255], rgb: [0, 255, 252] },
+  { hsv: [212, 255, 255], rgb: [252, 0, 255] },
+  { hsv: [21, 204, 100], rgb: [100, 60, 20] },
+  { hsv: [233, 219, 7], rgb: [7, 1, 4] },
+  { hsv: [0, 0, 40], rgb: [40, 40, 40] },
+  { hsv: [0, 0, 0], rgb: [0, 0, 0] },
+  { hsv: [0, 0, 255], rgb: [255, 255, 255] },
+])('HSV $hsv to RGB $rgb', ({ hsv, rgb }) => {
+  const image = createImageFromData([hsv], 'HSV');
+
+  const converted = image.convertColor('RGB');
+
+  expect(converted).toMatchImageData([rgb]);
+});
+
+test('RGB to HSV and back', () => {
+  const image = testUtils.createRgbImage([[200, 80, 40]]);
+
+  const converted = image.convertColor('HSV').convertColor('RGB');
+
+  expect(converted).toMatchImageData([[200, 78, 40]]);
+});
+
+test('RGBA to HSVA and back keeps alpha', () => {
+  const image = testUtils.createRgbaImage([[200, 80, 40, 90]]);
+
+  const hsva = image.convertColor('HSVA');
+
+  expect(hsva).toMatchImageData([[10, 204, 200, 90]]);
+
+  const rgba = hsva.convertColor('RGBA');
+
+  expect(rgba).toMatchImageData([[200, 78, 40, 90]]);
+});
+
+test('RGB to HSVA adds opaque alpha', () => {
+  const image = testUtils.createRgbImage([[200, 80, 40]]);
+
+  const converted = image.convertColor('HSVA');
+
+  expect(converted).toMatchImageData([[10, 204, 200, 255]]);
+});
+
+test('HSV to RGBA adds opaque alpha', () => {
+  const image = createImageFromData([[10, 204, 200]], 'HSV');
+
+  const converted = image.convertColor('RGBA');
+
+  expect(converted).toMatchImageData([[200, 78, 40, 255]]);
+});
+
+test('HSV to HSVA and HSVA to HSV', () => {
+  const image = createImageFromData([[10, 204, 200]], 'HSV');
+
+  const hsva = image.convertColor('HSVA');
+
+  expect(hsva).toMatchImageData([[10, 204, 200, 255]]);
+
+  const hsv = hsva.convertColor('HSV');
+
+  expect(hsv).toMatchImageData([[10, 204, 200]]);
+});
+
+test('HSV conversion does not modify the original image', () => {
+  const image = testUtils.createRgbImage([[200, 80, 40]]);
+
+  image.convertColor('HSV');
+
+  expect(image).toMatchImageData([[200, 80, 40]]);
+});
+
+test('split HSV image into hue, saturation and value channels', () => {
+  const image = testUtils.createRgbImage([[200, 80, 40, 255, 0, 0]]);
+
+  const [hue, saturation, value] = image.convertColor('HSV').split();
+
+  expect(hue).toMatchImageData([[10, 0]]);
+  expect(saturation).toMatchImageData([[204, 255]]);
+  expect(value).toMatchImageData([[200, 255]]);
+});
+
+test('RGB to GREY conversion is unchanged', () => {
+  const image = testUtils.createRgbImage([[200, 80, 40]]);
+
+  const converted = image.convertColor('GREY');
+
+  expect(converted).toMatchImageData([[111]]);
+});
+
+test('RGBA to GREYA keeps alpha', () => {
+  const image = testUtils.createRgbaImage([[200, 80, 40, 90]]);
+
+  const converted = image.convertColor('GREYA');
+
+  expect(converted).toMatchImageData([[111, 90]]);
+});
+
+test('HSV to GREY not implemented', () => {
+  const image = createImageFromData([[10, 204, 200]], 'HSV');
+
+  expect(() => image.convertColor('GREY')).toThrow(
+    /conversion from HSV to GREY not implemented/,
+  );
 });

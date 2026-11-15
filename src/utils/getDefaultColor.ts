@@ -15,6 +15,8 @@ export function getDefaultColor(image: Image | Mask): number[] {
     .with('GREYA', () => [0, image.maxValue])
     .with('RGB', () => [0, 0, 0])
     .with('RGBA', () => [0, 0, 0, image.maxValue])
+    .with('HSV', () => [0, 0, 0])
+    .with('HSVA', () => [0, 0, 0, image.maxValue])
     .with('BINARY', () => [1])
     .exhaustive();
 }
